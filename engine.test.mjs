@@ -1,0 +1,10 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {parseLogs,detect,demo,counts} from './engine.mjs';
+const event=(i,type='login_failed',user='a')=>({timestamp:new Date(Date.UTC(2026,0,1,0,i)).toISOString(),type,source:'192.0.2.1',user});
+test('reject malformed rows and sort valid rows',()=>{const p=parseLogs([JSON.stringify(event(2)), 'invalid',JSON.stringify(event(1))].join('\n'));assert.equal(p.errors.length,1);assert.equal(p.events[0].timestamp,event(1).timestamp);});
+test('five failures trigger exactly one alert',()=>{assert.equal(detect([0,1,2,3,4].map(i=>event(i))).length,1);});
+test('four failures do not alert',()=>assert.equal(detect([0,1,2,3].map(i=>event(i))).length,0));
+test('window boundary excludes old failures',()=>assert.equal(detect([0,2,4,6,8].map(i=>event(i))).length,0));
+test('different users are not correlated',()=>assert.equal(detect([0,1,2,3,4].map(i=>event(i,'login_failed',String(i)))).length,0));
+test('success after failures flags review',()=>assert.equal(detect([...Array.from({length:5},(_,i)=>event(i)),event(5,'login_success')]).filter(a=>a.severity==='high').length,2));
+test('demo counts and safe synthetic events',()=>{assert.equal(demo().length,128);assert.equal(Object.values(counts(demo())).reduce((a,b)=>a+b,0),128);assert.ok(detect(demo()).length>0);});
+test('oversized log input rejected',()=>assert.throws(()=>parseLogs('x'.repeat(2000001))));
