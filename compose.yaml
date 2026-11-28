@@ -1,0 +1,17 @@
+services:
+  soc:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - soc-data:/app/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+volumes:
+  soc-data:

@@ -1,0 +1,26 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {openStore} from './store.mjs';
+import {makeServer} from './http.mjs';
+test('collector roles, idempotency, incident workflow, event isolation and revocation',async t=>{
+ const s=openStore(':memory:');await s.createUser('admin@example.test','strong-password-123','admin');await s.createUser('analyst@example.test','strong-password-456');
+ const origin='http://127.0.0.1',server=await makeServer(s,{origin});await new Promise(r=>server.listen(0,'127.0.0.1',r));t.after(async()=>{await new Promise(r=>server.close(r));s.close();});
+ const base='http://127.0.0.1:'+server.address().port;
+ const req=(path,method='GET',data,cookie)=>fetch(base+path,{method,headers:{Origin:origin,...(data?{'Content-Type':'application/json'}:{}),...(cookie?{Cookie:cookie}:{})},body:data?JSON.stringify(data):undefined});
+ const login=async(email,password)=>(await req('/api/login','POST',{email,password})).headers.get('set-cookie').split(';')[0];
+ const admin=await login('admin@example.test','strong-password-123'),analyst=await login('analyst@example.test','strong-password-456');
+ assert.equal((await req('/api/collectors','POST',{name:'lab'},analyst)).status,403);
+ const c=await (await req('/api/collectors','POST',{name:'lab'},admin)).json();assert.match(c.token,/^[a-f0-9]{64}$/);
+ const listed=await (await req('/api/collectors','GET',null,admin)).json();assert.equal(listed[0].name,'lab');assert.equal('token' in listed[0],false);
+ const jsonl=Array.from({length:5},(_,i)=>JSON.stringify({timestamp:new Date(Date.UTC(2026,0,1,0,i)).toISOString(),source:'192.0.2.1',type:'login_failed',user:'test'})).join('\n');
+ const ship=(token=c.token,payload=jsonl)=>fetch(base+'/api/collector/ingest',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json','Idempotency-Key':'test-request-000001'},body:JSON.stringify({jsonl:payload})});
+ assert.equal((await ship('0'.repeat(64))).status,401);assert.equal((await ship()).status,201);assert.equal((await (await ship()).json()).duplicate,true);assert.equal((await ship(c.token,jsonl+'\n')).status,409);
+ const summary=await (await req('/api/summary','GET',null,admin)).json();assert.equal(summary.events,5);assert.equal(summary.open_incidents,1);
+ assert.deepEqual(await (await req('/api/events?q=test','GET',null,analyst)).json(),[]);
+ assert.equal((await (await req('/api/events?q=test','GET',null,admin)).json()).length,5);
+ const [incident]=await (await req('/api/incidents','GET',null,admin)).json();assert.equal((await req('/api/incidents/'+incident.id,'POST',{status:'resolved',note:'Reviewed'},analyst)).status,404);
+ assert.equal((await req('/api/incidents/'+incident.id,'POST',{status:'resolved',note:'Reviewed'},admin)).status,200);
+ assert.equal((await (await req('/api/summary','GET',null,admin)).json()).open_incidents,0);
+ assert.ok((await (await req('/api/audit','GET',null,admin)).json()).some(a=>a.action==='incident.update'));
+ assert.equal((await req('/api/collectors/'+c.id+'/revoke','POST',{},admin)).status,200);assert.equal((await ship()).status,401);
+});

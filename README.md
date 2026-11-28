@@ -9,6 +9,12 @@ A lightweight, self-hosted security event analysis platform for cybersecurity le
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-475569)
 ![Status](https://img.shields.io/badge/Status-Local%20lab-0d9488)
 
+## Enterprise-oriented development release
+
+The authenticated console now includes polling-based operations metrics, indexed event search, high-severity incident lifecycle, owner-scoped analyst/admin permissions, revocable collector credentials, machine ingestion with idempotency, and account audit history. A lightweight Docker Compose configuration and Windows/Linux/macOS CI matrix are included. See [Operations and collector setup](docs/OPERATIONS.md) for exact steps, API details and limitations.
+
+Create an administrator by adding `admin` after the email in the account-creation command, e.g. `node server/start.mjs create-user admin@example.test admin`. Existing accounts remain analysts. The UI preview below illustrates the earlier baseline views, not the newer incident and collector panels.
+
 ## UI preview
 
 ![CyberSentinel SOC illustrated UI preview](docs/images/ui-preview.svg)
@@ -264,7 +270,7 @@ cyber-sentinel-soc/
 npm test
 ```
 
-The existing 11 automated tests cover log validation, detection thresholds, correlation isolation, password hashing, session expiry, API authorization, origin rejection, account isolation and logout. See [GitHub Actions](https://github.com/0xpratikparmar/cyber-sentinel-soc/actions) for CI history. The installation guides are intended for all three desktop OSes; the current CI workflow runs on Ubuntu only.
+The automated tests cover log validation, detection thresholds, correlation isolation, password hashing, session expiry, API authorization, origin rejection, account isolation and logout. See [GitHub Actions](https://github.com/0xpratikparmar/cyber-sentinel-soc/actions) for CI history. The installation guides are intended for all three desktop OSes; the CI workflow now targets Ubuntu, Windows and macOS. Check actual run results before relying on compatibility.
 
 ## Troubleshooting
 
@@ -281,9 +287,9 @@ The existing 11 automated tests cover log validation, detection thresholds, corr
 
 ## Limitations and roadmap
 
-This is an AI-assisted, industry-oriented **local defensive security lab**, not a production-ready SIEM. It does not currently provide live agents, real-time streaming, external threat intelligence, MITRE mapping, MFA, role-based authorization, automated remediation or vulnerability scanning. Logs are stored locally in plaintext. Public deployment requires TLS, robust authentication and authorization, audit logging, storage encryption, retention controls, load testing and independent security review. Windows and macOS installation have not been verified by CI yet.
+This is an AI-assisted, industry-oriented **local defensive security lab**, not a production-ready SIEM. It does not currently provide live agents, real-time streaming, external threat intelligence, MITRE mapping, MFA, organization-wide authorization, automated remediation or vulnerability scanning. Logs are stored locally in plaintext. Public deployment requires TLS, robust authentication and authorization, audit logging, storage encryption, retention controls, load testing and independent security review. Cross-platform CI is configured; interactive installation and Docker deployment have not been independently verified.
 
-Potential future work: structured collector integrations, analyst/admin roles, incident workflows, threat intelligence, richer dashboard and multi-platform CI. These are roadmap items, not current capabilities.
+Potential future work: structured collector integrations, shared organization roles, advanced incident workflows, threat intelligence, richer dashboard and multi-platform CI. These are roadmap items, not current capabilities.
 
 ## Author
 

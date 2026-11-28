@@ -10,3 +10,5 @@ test('demo counts and safe synthetic events',()=>{assert.equal(demo().length,128
 test('oversized log input rejected',()=>assert.throws(()=>parseLogs('x'.repeat(2000001))));
 
 import './server/http.test.mjs';
+
+import './server/enterprise.test.mjs';
