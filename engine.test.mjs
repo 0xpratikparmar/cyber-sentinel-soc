@@ -8,3 +8,7 @@ test('different users are not correlated',()=>assert.equal(detect([0,1,2,3,4].ma
 test('success after failures flags review',()=>assert.equal(detect([...Array.from({length:5},(_,i)=>event(i)),event(5,'login_success')]).filter(a=>a.severity==='high').length,2));
 test('demo counts and safe synthetic events',()=>{assert.equal(demo().length,128);assert.equal(Object.values(counts(demo())).reduce((a,b)=>a+b,0),128);assert.ok(detect(demo()).length>0);});
 test('oversized log input rejected',()=>assert.throws(()=>parseLogs('x'.repeat(2000001))));
+
+import './server/http.test.mjs';
+
+import './server/enterprise.test.mjs';
