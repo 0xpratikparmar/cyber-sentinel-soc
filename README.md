@@ -13,13 +13,20 @@ A lightweight, self-hosted security event analysis platform for cybersecurity le
 
 The authenticated console now includes polling-based operations metrics, indexed event search, high-severity incident lifecycle, owner-scoped analyst/admin permissions, revocable collector credentials, machine ingestion with idempotency, and account audit history. A lightweight Docker Compose configuration and Windows/Linux/macOS CI matrix are included. See [Operations and collector setup](docs/OPERATIONS.md) for exact steps, API details and limitations.
 
-Create an administrator by adding `admin` after the email in the account-creation command, e.g. `node server/start.mjs create-user admin@example.test admin`. Existing accounts remain analysts. The UI preview below illustrates the earlier baseline views, not the newer incident and collector panels.
+Create an administrator by adding `admin` after the email in the account-creation command, e.g. `node server/start.mjs create-user admin@example.test admin`. Existing accounts remain analysts.
 
 ## UI preview
 
-![CyberSentinel SOC illustrated UI preview](docs/images/ui-preview.svg)
+![CyberSentinel SIEM authenticated operations dashboard](docs/images/siem-dashboard.svg)
 
-*Illustration of the existing browser demo and authenticated console, combined for documentation. Demo metrics come from the synthetic dataset. This is not a screenshot or a live monitoring feed.*
+*Illustrated preview of the current authenticated operations console with synthetic sample values. Layout is simplified for readability; not a live screenshot.*
+
+<details>
+<summary>Browser demo dashboard preview</summary>
+
+![CyberSentinel browser demo](docs/images/ui-preview.svg)
+
+</details>
 
 - **[Features](#features)** · **[Installation](#installation)** · **[How to use](#how-to-use)** · **[Architecture](#architecture)** · **[Troubleshooting](#troubleshooting)**
 
