@@ -1,0 +1,8 @@
+{"timestamp":"2026-01-01T09:00:00.000Z","source":"192.0.2.15","type":"login_failed","user":"demo-user","detail":"Synthetic training event"}
+{"timestamp":"2026-01-01T09:00:30.000Z","source":"192.0.2.15","type":"login_failed","user":"demo-user","detail":"Synthetic training event"}
+{"timestamp":"2026-01-01T09:01:00.000Z","source":"192.0.2.15","type":"login_failed","user":"demo-user","detail":"Synthetic training event"}
+{"timestamp":"2026-01-01T09:01:30.000Z","source":"192.0.2.15","type":"login_failed","user":"demo-user","detail":"Synthetic training event"}
+{"timestamp":"2026-01-01T09:02:00.000Z","source":"192.0.2.15","type":"login_failed","user":"demo-user","detail":"Synthetic training event"}
+{"timestamp":"2026-01-01T09:02:30.000Z","source":"192.0.2.15","type":"login_success","user":"demo-user","detail":"Synthetic training event"}
+{"timestamp":"2026-01-01T09:03:00.000Z","source":"192.0.2.15","type":"access_denied","user":"demo-user","detail":"Synthetic training event"}
+{"timestamp":"2026-01-01T09:03:30.000Z","source":"192.0.2.15","type":"file_changed","user":"demo-user","detail":"Synthetic training event"}
