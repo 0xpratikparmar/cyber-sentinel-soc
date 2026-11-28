@@ -1,0 +1,26 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {openStore} from './store.mjs';
+import {makeServer} from './http.mjs';
+import {hashPassword,verifyPassword} from './auth.mjs';
+test('salted password hashes and verification',async()=>{const p='test-password-1234',a=await hashPassword(p),b=await hashPassword(p);assert.notEqual(a,b);assert.equal(await verifyPassword(p,a),true);assert.equal(await verifyPassword('wrong',a),false);});
+test('session expiry and revocation',async()=>{const s=openStore(':memory:');try{await s.createUser('a@example.test','test-password-1234');const u=s.user('a@example.test'),token=s.session(u.id,0);assert.equal(s.identity(token,1).email,u.email);assert.equal(s.identity(token,28800000),null);s.revoke(token);assert.equal(s.identity(token,1),null);}finally{s.close();}});
+test('API authorization, origin, ingest, ownership and logout',async(t)=>{
+  const store=openStore(':memory:');await store.createUser('a@example.test','test-password-1234');await store.createUser('b@example.test','test-password-5678');
+  const origin='http://127.0.0.1';const server=await makeServer(store,{origin});
+  await new Promise(r=>server.listen(0,'127.0.0.1',r));t.after(async()=>{await new Promise(r=>server.close(r));store.close();});
+  const base='http://127.0.0.1:'+server.address().port;
+  const request=(path,method='GET',data,cookie,from=origin)=>fetch(base+path,{method,headers:{Origin:from,...(data?{'Content-Type':'application/json'}:{}),...(cookie?{Cookie:cookie}:{})},body:data?JSON.stringify(data):undefined});
+  assert.equal((await request('/api/batches')).status,401);
+  assert.equal((await request('/api/login','POST',{email:'a@example.test',password:'wrong'})).status,401);
+  assert.equal((await request('/api/login','POST',{},null,'https://other.example')).status,403);
+  const login=await request('/api/login','POST',{email:'a@example.test',password:'test-password-1234'});assert.equal(login.status,200);
+  const header=login.headers.get('set-cookie');assert.match(header,/HttpOnly/);assert.match(header,/SameSite=Strict/);const cookie=header.split(';')[0];
+  const event={timestamp:'2026-01-01T00:00:00Z',source:'192.0.2.1',type:'access_denied'};
+  const saved=await request('/api/batches','POST',{jsonl:JSON.stringify(event)},cookie);assert.equal(saved.status,201);const {id}=await saved.json();
+  assert.equal((await request('/api/batches/'+id+'/alerts','GET',null,cookie)).status,200);
+  const other=await request('/api/login','POST',{email:'b@example.test',password:'test-password-5678'});const otherCookie=other.headers.get('set-cookie').split(';')[0];
+  assert.equal((await request('/api/batches/'+id+'/alerts','GET',null,otherCookie)).status,404);
+  assert.deepEqual(await (await request('/api/batches','GET',null,otherCookie)).json(),[]);
+  assert.equal((await request('/api/logout','POST',{},cookie)).status,200);assert.equal((await request('/api/me','GET',null,cookie)).status,401);
+});

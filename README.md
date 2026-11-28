@@ -1,26 +1,35 @@
 # CyberSentinel SOC
 
-An educational, browser-local mini-SIEM for structured security logs. Built as an AI-assisted portfolio project for hands-on study and extension by [0xpratikparmar](https://github.com/0xpratikparmar).
+An AI-assisted defensive security portfolio project: a local authenticated SOC console and rule-based SIEM lab. This is an industry-oriented foundation, not an enterprise-ready product.
 
-## Features
-- Synthetic demo with 128 events; local JSONL import (2 MB limit), validation and rejected-row counts.
-- Rule-based repeated-login-failure detection per source/user in a five-minute window; success after failures, access denial and file-change alerts.
-- Dashboard metrics, event distribution, severity and text filters, JSON alert export.
-- No backend, accounts, dependencies or external telemetry; no live ingestion or automated remediation.
+## Quick start (Node.js 22.13+)
+No npm dependencies are required. Node SQLite may print an experimental warning.
 
-## Run locally
-From this directory, run `python3 -m http.server 8000 --bind 127.0.0.1`, then open http://127.0.0.1:8000. Run tests with Node.js 22: `node --test engine.test.mjs`.
+```bash
+# Bash or Zsh: enter a unique password without echoing it
+printf 'New password (12+ characters): '
+read -rs SOC_PASSWORD
+printf '\n'
+export SOC_PASSWORD
+node server/start.mjs create-user analyst@example.test
+unset SOC_PASSWORD
+npm start
+```
+
+Open http://127.0.0.1:8000 and sign in with the account just created. Run `npm test`. The browser-only demo remains accessible at /demo; it does not send imported logs to the backend.
 
 ## Architecture
-`JSONL / demo → validation and normalization → detection rules → dashboard → JSON export`.
-`engine.mjs` contains pure logic; `app.mjs` renders using textContent; CSS provides responsive layout. No real attack logs are shipped. Demo IPs are documentation ranges.
+Browser console → same-origin HTTP API → session authorization → detection engine → SQLite investigation storage.
+- Salted scrypt password hashes, opaque 256-bit session cookies, hashed session storage, 8-hour expiration and server-side logout.
+- Origin checks, basic in-process login rate limiting, parameterized database queries and user-scoped records.
+- JSONL batch import (2 MB, up to 10,000 valid events), detection, saved investigations and alert review.
+- Detection rules and synthetic demo remain in engine.mjs; rules are heuristic and scoped to each imported batch.
+- Tests cover existing detection rules, password hashing, session expiry, unauthorized access, origin rejection, data isolation and logout.
 
-## Input format
-One JSON object per line. Required fields: `timestamp` (ISO timestamp), `source` (string), `type` (`login_failed`, `login_success`, `access_denied`, `file_changed`, or `network_event`). Optional `user` and `detail` strings.
+See [authentication and threat model](docs/AUTHENTICATION.md) for the credential and request flow.
 
+## Log example
 ```json
 {"timestamp":"2026-01-01T09:00:00Z","source":"192.0.2.15","type":"login_failed","user":"demo-user"}
 ```
-
-## Limitations and responsible use
-Alerts are heuristic indicators, not confirmed attacks. No real-time log collection, threat intelligence feed, IP geolocation, malware analysis, persistence or enterprise security guarantees. Use only synthetic or authorized logs. Export may contain sensitive data; do not upload it publicly. This is a learning project, not a production SIEM. Review and extend the code before presenting it as independent work.
+Use only synthetic or authorized logs. This is not real-time monitoring. No automated remediation, external intelligence, MFA, RBAC, distributed ingestion or production deployment is included yet. Logs are stored locally in plaintext. The default server is loopback-only; do not expose it publicly without hardening. Review and extend AI-assisted code before presenting it as independent work.

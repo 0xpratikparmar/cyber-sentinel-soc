@@ -4,3 +4,6 @@ node_modules/
 *.jsonl
 *.ndjson
 cybersentinel-alerts.json
+
+data/
+*.sqlite*
